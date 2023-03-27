@@ -1,0 +1,53 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: prometheus
+  namespace: spire
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: prometheus
+  serviceName: prometheus
+  template:
+    metadata:
+      labels:
+        app: prometheus
+    spec:
+      hostname: prometheus
+      containers:
+        - name: prometheus
+          image: prom/prometheus:v2.20.1
+          volumeMounts:
+            - name: config-volume
+              mountPath: /etc/prometheus
+          ports:
+            - containerPort: 9090
+      volumes:
+        - name: config-volume
+          configMap:
+            name: prometheus-config
+  # volumeClaimTemplates:
+  #   - metadata:
+  #       name: data
+  #     spec:
+  #       accessModes:
+  #         - "ReadWriteOnce"
+  #       resources:
+  #         requests:
+  #           storage: 200Mi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: prometheus-lb
+  namespace: spire
+spec:
+  type: LoadBalancer
+  ports:
+    - name: prometheus-ui
+      port: 80
+      targetPort: 9090
+      protocol: TCP
+  selector:
+    app: prometheus

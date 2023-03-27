@@ -1,0 +1,97 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: spire-server
+  namespace: spire
+data:
+  server.conf: |
+    server {
+      bind_address = "0.0.0.0"
+      bind_port = "8081"
+      socket_path = "/tmp/spire-server/private/api.sock"
+      trust_domain = "example.org"
+      data_dir = "/run/spire/data"
+      log_level = "DEBUG"
+      log_file = "/run/spire/logs/spire-server.log"
+      #AWS requires the use of RSA.  EC cryptography is not supported
+      ca_key_type = "rsa-2048"
+      ca_ttl = "87600h" # 10 years
+
+      ca_subject = {
+        country = ["US"],
+        organization = ["SPIFFE"],
+        common_name = "",
+      }
+    }
+
+    plugins {
+      DataStore "sql" {
+        plugin_data {
+          database_type = "sqlite3"
+          connection_string = "/run/spire/data/datastore.sqlite3"
+        }
+      }
+
+      NodeAttestor "x509pop" {
+        plugin_data {
+            ca_bundle_path = "/run/spire/agent-certs/ca-cert.pem"
+            
+            # Change the agent's SPIFFE ID format
+            # agent_path_template = "/cn/{{ .Subject.CommonName }}"
+        }
+      }
+
+      NodeAttestor "k8s_psat" {
+          plugin_data {
+              clusters = {
+                  "demo-cluster" = {
+                      service_account_allow_list = ["spire:spire-agent"]
+                  }
+              }
+          }
+      }
+
+      # NodeAttestor "k8s_sat" {
+      #   plugin_data {
+      #     clusters = {
+      #       # NOTE: Change this to your cluster name
+      #       "demo-cluster" = {
+      #         use_token_review_api_validation = true
+      #         service_account_allow_list = ["spire:spire-agent"]
+      #       }
+      #     }
+      #   }
+      # }
+
+      KeyManager "disk" {
+        plugin_data {
+          keys_path = "/run/spire/data/keys.json"
+        }
+      }
+
+      Notifier "k8sbundle" {
+        plugin_data {
+        }
+      }
+    }
+
+    telemetry {
+        Prometheus {
+            host = "0.0.0.0"
+            port = 8088
+        }
+
+        Statsd = [
+            {
+                address = "graphite-statsd.spire.svc.cluster.local:8125"
+            },
+        ]
+    }
+
+    health_checks {
+      listener_enabled = true
+      bind_address = "0.0.0.0"
+      bind_port = "8080"
+      live_path = "/live"
+      ready_path = "/ready"
+    }

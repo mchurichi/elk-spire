@@ -1,0 +1,72 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: graphite-statsd
+spec:
+  serviceName: graphite-statsd
+  replicas: 1
+  selector:
+    matchLabels:
+      app: graphite-statsd
+  template: 
+    metadata:
+      labels:
+        app: graphite-statsd
+    spec:
+      containers:
+      - name: graphite-statsd
+        image: graphiteapp/graphite-statsd:1.1.7-6
+        ports:
+        - containerPort: 80
+        - containerPort: 8125
+          protocol: UDP
+        volumeMounts:
+        - name: graphite-data
+          mountPath: /opt/graphite/storage/whisper
+      volumes:
+      - name: graphite-data
+        emptyDir: {}
+        # persistentVolumeClaim:
+        #   claimName: graphite-data-pvc
+        #   readOnly: false
+  # volumeClaimTemplates:
+  # - metadata:
+  #     name: graphite-data-pvc
+  #   spec:
+  #     accessModes: [ "ReadWriteOnce" ]
+  #     resources:
+  #       requests:
+  #         storage: 200Mi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: graphite-statsd
+  namespace: spire
+spec:
+  ports:
+    - name: graphite-statsd
+      port: 8125
+      targetPort: 8125
+      protocol: UDP
+  selector:
+    app: graphite-statsd
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: statsd-ingress
+  namespace: spire
+spec:
+  type: LoadBalancer
+  ports:
+    - name: statsd-ui
+      port: 80
+      targetPort: 80
+      protocol: TCP
+    - name: statsd-api
+      port: 8125
+      targetPort: 8125
+      protocol: UDP
+  selector:
+    app: graphite-statsd

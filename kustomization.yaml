@@ -1,0 +1,41 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+resources:
+
+# spire controller manager
+- spire/spire.spiffe.io_clusterspiffeids.yaml
+- spire/spire.spiffe.io_clusterfederatedtrustdomains.yaml
+- spire/spire-controller-manager-config.yaml
+- spire/spire-controller-manager-role.yaml
+- spire/spire-controller-manager-webhook.yaml
+- spire/spire-workloads-clusterspiffeid.yaml
+
+# spire
+- spire/agent-x509pop-configmap.yaml
+- spire/agent-account.yaml
+- spire/agent-cluster-role.yaml
+- spire/agent-configmap.yaml
+- spire/agent-daemonset.yaml
+- spire/agent-service.yaml
+- spire/server-account.yaml
+- spire/server-cluster-role.yaml
+- spire/server-configmap.yaml
+- spire/server-service.yaml
+- spire/server-statefulset.yaml
+- spire/spire-bundle-configmap.yaml
+- spire/spire-namespace.yaml
+
+# - telemetry/prometheus-configmap.yaml
+# - telemetry/prometheus-statefulset.yaml
+# - telemetry/statsd-graphite-statefulset.yaml
+
+- elk/elasticsearch.yaml
+
+- spire/workloads.yaml
+
+configMapGenerator:
+  - name: logstash-config
+    env: spire/logstash.env
+    files:
+      - spire/logstash-configmap.yaml

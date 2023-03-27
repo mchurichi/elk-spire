@@ -1,0 +1,56 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: backend-workload
+  namespace: default
+spec:
+  replicas: 20
+  selector:
+    matchLabels:
+      app: backend-workload
+  template:
+    metadata:
+      labels:
+        app: backend-workload
+    spec:
+      containers:
+      - name: backend-workload
+        image: mchurichi/spiffe-helper:0.6.0
+        imagePullPolicy: IfNotPresent
+        volumeMounts:
+        - name: spiffe-helper-config
+          mountPath: /helper.conf
+          subPath: helper.conf
+        - name: spire-agent-socket
+          mountPath: /run/spire/sockets
+        resources:
+          limits:
+            memory: "50Mi"
+      volumes:
+      - name: spiffe-helper-config
+        configMap:
+          name: spiffe-helper-config
+      - name: spire-agent-socket
+        hostPath:
+          path: /run/spire/sockets
+          type: DirectoryOrCreate
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: spiffe-helper-config
+  namespace: default
+data:
+  helper.conf: |
+    agentAddress = "/run/spire/sockets/agent.sock"
+    cmd = ""
+    cmdArgs = ""
+    certDir = ""
+    renewSignal = "SIGUSR1"
+    svidFileName = "svid.pem"
+    svidKeyFileName = "svid_key.pem"
+    svidBundleFileName = "svid_bundle.pem"
+    # Add CA with intermediates into Bundle file instead of SVID file,
+    # it is the expected behavior in some scenarios like MySQL.
+    # Default: false
+    # addIntermediatesToBundle = false

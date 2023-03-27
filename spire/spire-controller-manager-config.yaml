@@ -1,0 +1,22 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: spire-controller-manager-config
+  namespace: spire
+data:
+  spire-controller-manager-config.yaml: |
+    apiVersion: spire.spiffe.io/v1alpha1
+    kind: ControllerManagerConfig
+    metrics:
+      bindAddress: 127.0.0.1:8082
+    healthProbe:
+      bindAddress: 127.0.0.1:8083
+    leaderElection:
+      leaderElect: false
+    clusterName: demo-cluster
+    trustDomain: example.org
+    ignoreNamespaces:
+      - kube-system
+      - kube-public
+      - spire-system
+      - local-path-storage

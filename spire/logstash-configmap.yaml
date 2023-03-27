@@ -1,0 +1,44 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: logstash-config
+  namespace: spire
+data:
+  logstash.yml: |
+    http:
+      host: "0.0.0.0"
+    monitoring:
+      enabled: false
+    xpack:
+      monitoring:
+        enabled: false
+        elasticsearch:
+          hosts:
+            - http://quickstart-es-http.default.svc.cluster.local:9200
+          username: "${LOGSTASH_USERNAME}"
+          password: "${LOGSTASH_PASSWORD}"
+          ssl: false
+
+  logstash.conf: |
+    input {
+      file {
+        path => "/run/spire/logs/*.log"
+        start_position => "beginning"
+      }
+    }
+
+    filter {
+      kv {
+        source => "message"
+        field_split => " "
+        value_split => "="
+      }
+    }
+
+    output {
+      elasticsearch {
+        hosts => ["http://quickstart-es-http.default.svc.cluster.local:9200"]
+        user => "${LOGSTASH_USER}"
+        password => "${LOGSTASH_PASSWORD}"
+      }
+    }

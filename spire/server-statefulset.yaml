@@ -1,0 +1,131 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: spire-server
+  namespace: spire
+  labels:
+    app: spire-server
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: spire-server
+  serviceName: spire-server
+  template:
+    metadata:
+      namespace: spire
+      labels:
+        app: spire-server
+    spec:
+      serviceAccountName: spire-server
+      containers:
+        - name: spire-server
+          image: ghcr.io/spiffe/spire-server:1.5.1
+          args:
+            - -config
+            - /run/spire/config/server.conf
+          ports:
+            - containerPort: 8081
+          volumeMounts:
+            - name: spire-server-socket
+              mountPath: /tmp/spire-server/private
+            - name: spire-logs
+              mountPath: /run/spire/logs
+            - name: spire-config
+              mountPath: /run/spire/config
+              readOnly: true
+            - name: spire-data
+              mountPath: /run/spire/data
+              readOnly: false
+            - name: agent-ca-cert
+              mountPath: /run/spire/agent-certs
+              readOnly: true
+          livenessProbe:
+            httpGet:
+              path: /live
+              port: 8080
+            failureThreshold: 2
+            initialDelaySeconds: 15
+            periodSeconds: 60
+            timeoutSeconds: 3
+          readinessProbe:
+            httpGet:
+              path: /ready
+              port: 8080
+            initialDelaySeconds: 5
+            periodSeconds: 5
+        - name: logstash
+          image: docker.elastic.co/logstash/logstash:8.6.2
+          securityContext:
+            runAsUser: 0
+          volumeMounts:
+          - name: logstash-config-config
+            mountPath: /usr/share/logstash/pipeline/logstash.conf
+            subPath: logstash.conf
+          - name: logstash-config-pipeline
+            mountPath: /usr/share/logstash/config/logstash.yaml
+            subPath: logstash.yml
+          - name: spire-logs
+            mountPath: /run/spire/logs
+        - name: spire-controller-manager
+          image: ghcr.io/spiffe/spire-controller-manager:0.2.2
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 9443
+          args:
+          - "--config=spire-controller-manager-config.yaml"
+          volumeMounts:
+            - name: spire-server-socket
+              mountPath: /spire-server
+              readOnly: true
+            - name: spire-controller-manager-config
+              mountPath: /spire-controller-manager-config.yaml
+              subPath: spire-controller-manager-config.yaml
+      volumes:
+        - name: spire-controller-manager-config
+          configMap:
+            name: spire-controller-manager-config
+        - name: spire-server-socket
+          hostPath:
+            path: /tmp/spire-server/private
+            type: DirectoryOrCreate
+        - name: spire-logs
+          emptyDir: {}
+        - name: spire-config
+          configMap:
+            name: spire-server
+        - name: logstash-config-config
+          configMap:
+            name: logstash-config
+        - name: logstash-config-pipeline
+          configMap:
+            name: logstash-config
+        - name: agent-ca-cert
+          configMap:
+            name: spire-certs
+            items:
+              - key: ca-cert.pem
+                path: ca-cert.pem
+  volumeClaimTemplates:
+    - metadata:
+        name: spire-data
+        namespace: spire
+      spec:
+        accessModes:
+          - ReadWriteOnce
+        resources:
+          requests:
+            storage: 1Gi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: spire-controller-manager-webhook-service
+  namespace: spire
+spec:
+  ports:
+    - port: 443
+      protocol: TCP
+      targetPort: 9443
+  selector:
+    app: spire-server
