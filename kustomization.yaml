@@ -8,7 +8,7 @@ resources:
 - spire/spire.spiffe.io_clusterfederatedtrustdomains.yaml
 - spire/spire-controller-manager-config.yaml
 - spire/spire-controller-manager-role.yaml
-- spire/spire-controller-manager-webhook.yaml
+# - spire/spire-controller-manager-webhook.yaml
 - spire/spire-workloads-clusterspiffeid.yaml
 
 # spire

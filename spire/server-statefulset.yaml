@@ -67,20 +67,20 @@ spec:
             subPath: logstash.yml
           - name: spire-logs
             mountPath: /run/spire/logs
-        - name: spire-controller-manager
-          image: ghcr.io/spiffe/spire-controller-manager:0.2.2
-          imagePullPolicy: IfNotPresent
-          ports:
-            - containerPort: 9443
-          args:
-          - "--config=spire-controller-manager-config.yaml"
-          volumeMounts:
-            - name: spire-server-socket
-              mountPath: /spire-server
-              readOnly: true
-            - name: spire-controller-manager-config
-              mountPath: /spire-controller-manager-config.yaml
-              subPath: spire-controller-manager-config.yaml
+        # - name: spire-controller-manager
+        #   image: ghcr.io/spiffe/spire-controller-manager:0.2.2
+        #   imagePullPolicy: IfNotPresent
+        #   ports:
+        #     - containerPort: 9443
+        #   args:
+        #   - "--config=spire-controller-manager-config.yaml"
+        #   volumeMounts:
+        #     - name: spire-server-socket
+        #       mountPath: /spire-server
+        #       readOnly: true
+        #     - name: spire-controller-manager-config
+        #       mountPath: /spire-controller-manager-config.yaml
+        #       subPath: spire-controller-manager-config.yaml
       volumes:
         - name: spire-controller-manager-config
           configMap:
