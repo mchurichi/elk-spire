@@ -51,10 +51,10 @@ data:
         }
       }
 
-      # WorkloadAttestor "unix" {
-      #     plugin_data {
-      #     }
-      # }
+      WorkloadAttestor "unix" {
+          plugin_data {
+          }
+      }
     }
 
     telemetry {

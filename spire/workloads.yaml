@@ -17,6 +17,8 @@ spec:
       - name: backend-workload
         image: mchurichi/spiffe-helper:0.6.0
         imagePullPolicy: IfNotPresent
+        securityContext:
+          runAsUser: 500
         volumeMounts:
         - name: spiffe-helper-config
           mountPath: /helper.conf
@@ -45,7 +47,7 @@ data:
     agentAddress = "/run/spire/sockets/agent.sock"
     cmd = ""
     cmdArgs = ""
-    certDir = ""
+    certDir = "/tmp"
     renewSignal = "SIGUSR1"
     svidFileName = "svid.pem"
     svidKeyFileName = "svid_key.pem"
