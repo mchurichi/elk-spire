@@ -1,0 +1,13 @@
+http:
+  host: "0.0.0.0"
+monitoring:
+  enabled: false
+xpack:
+  monitoring:
+    enabled: false
+    elasticsearch:
+      hosts:
+        - http://quickstart-es-http.default.svc.cluster.local:9200
+      username: "${LOGSTASH_USER}"
+      password: "${LOGSTASH_PASSWORD}"
+      ssl: false

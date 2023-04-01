@@ -31,6 +31,8 @@ spec:
           image: ghcr.io/spiffe/spire-agent:1.5.1
           args: ["-config", "/run/spire/config/agent.conf"]
           volumeMounts:
+            - name: spire-agent-data
+              mountPath: /run/spire/data
             - name: spire-logs
               mountPath: /run/spire/logs
             - name: spire-config
@@ -59,8 +61,22 @@ spec:
               port: 8080
             initialDelaySeconds: 5
             periodSeconds: 5
+
+        - name: spiffe-id-connector
+          image: finalgene/openssh
+          args: ["watch", "openssl x509 -in /run/spire/data/agent_svid.der -inform DER -text | grep URI: | sed 's/.*URI://g' > /run/spire/spiffe-id/agent-id"]
+          volumeMounts:
+            - name: spire-agent-data
+              mountPath: /run/spire/data
+              readOnly: true
+            - name: spire-agent-id
+              mountPath: /run/spire/spiffe-id
+              
         - name: logstash
           image: docker.elastic.co/logstash/logstash:8.6.2
+          envFrom:
+            - configMapRef:
+                name: logstash-config
           securityContext:
             runAsUser: 0
           volumeMounts:
@@ -69,7 +85,16 @@ spec:
             subPath: logstash.conf
           - name: spire-logs
             mountPath: /run/spire/logs
+            readOnly: true
+          - name: spire-agent-id
+            mountPath: /run/spire/spiffe-id
+            readOnly: true
+
       volumes:
+        - name: spire-agent-id
+          emptyDir: {}
+        - name: spire-agent-data
+          emptyDir: {}
         - name: spire-logs
           emptyDir: {}
         - name: spire-config

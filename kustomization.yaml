@@ -36,6 +36,10 @@ resources:
 
 configMapGenerator:
   - name: logstash-config
+    namespace: spire
     env: spire/logstash.env
     files:
-      - spire/logstash-configmap.yaml
+      - spire/logstash.yml
+      - spire/logstash.conf
+generatorOptions:
+  disableNameSuffixHash: true
