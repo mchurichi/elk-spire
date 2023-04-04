@@ -7,3 +7,14 @@ spec:
   count: 1
   elasticsearchRef:
     name: quickstart
+  config:
+    xpack.security.secureCookies: true
+    xpack.security.sameSiteCookies: "None"
+    xpack.security.authc.providers:
+      basic.basic1:
+        order: 0
+      anonymous.anonymous1:
+        order: 1
+        credentials:
+          username: "anonymous"
+          password: "anonymous"

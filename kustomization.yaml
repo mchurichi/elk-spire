@@ -30,7 +30,10 @@ resources:
 # - telemetry/prometheus-statefulset.yaml
 # - telemetry/statsd-graphite-statefulset.yaml
 
+- elk/eck-crds-2.6.1.yaml
+- elk/eck-operator-2.6.1.yaml
 - elk/elasticsearch.yaml
+- elk/kibana.yaml
 
 - spire/workloads.yaml
 
