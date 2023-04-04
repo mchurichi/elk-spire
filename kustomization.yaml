@@ -3,38 +3,41 @@ kind: Kustomization
 
 resources:
 
-# spire controller manager
-- spire/spire.spiffe.io_clusterspiffeids.yaml
-- spire/spire.spiffe.io_clusterfederatedtrustdomains.yaml
-- spire/spire-controller-manager-config.yaml
-- spire/spire-controller-manager-role.yaml
-# - spire/spire-controller-manager-webhook.yaml
-- spire/spire-workloads-clusterspiffeid.yaml
-
-# spire
-- spire/agent-x509pop-configmap.yaml
-- spire/agent-account.yaml
-- spire/agent-cluster-role.yaml
-- spire/agent-configmap.yaml
-- spire/agent-daemonset.yaml
-- spire/agent-service.yaml
+# SPIRE
+- spire/spire-namespace.yaml
 - spire/server-account.yaml
 - spire/server-cluster-role.yaml
 - spire/server-configmap.yaml
 - spire/server-service.yaml
 - spire/server-statefulset.yaml
 - spire/spire-bundle-configmap.yaml
-- spire/spire-namespace.yaml
+- spire/agent-x509pop-configmap.yaml
+- spire/agent-account.yaml
+- spire/agent-cluster-role.yaml
+- spire/agent-configmap.yaml
+- spire/agent-daemonset.yaml
+- spire/agent-service.yaml
 
+# SPIRE Controller Manager - temporarily disabled
+# - spire/spire.spiffe.io_clusterspiffeids.yaml
+# - spire/spire.spiffe.io_clusterfederatedtrustdomains.yaml
+# - spire/spire-controller-manager-config.yaml
+# - spire/spire-controller-manager-role.yaml
+# - spire/spire-controller-manager-webhook.yaml
+# - spire/spire-workloads-clusterspiffeid.yaml
+
+# Telemetry - temporarily disabled
 # - telemetry/prometheus-configmap.yaml
 # - telemetry/prometheus-statefulset.yaml
 # - telemetry/statsd-graphite-statefulset.yaml
 
+# ELK
 - elk/eck-crds-2.6.1.yaml
 - elk/eck-operator-2.6.1.yaml
 - elk/elasticsearch.yaml
 - elk/kibana.yaml
 
+# Dummy workloads
 - spire/workloads.yaml
 
 configMapGenerator:
